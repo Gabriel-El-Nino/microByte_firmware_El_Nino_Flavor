@@ -358,19 +358,19 @@ static void input_set(){
 
     uint16_t inputs_value =  input_read();
 
-    if(!((inputs_value >> 0) & 0x01))  smsButtons |= INPUT_DOWN;
-    if(!((inputs_value >> 1) & 0x01))  smsButtons |= INPUT_LEFT;
-    if(!((inputs_value >> 2) & 0x01))  smsButtons |= INPUT_UP;
-    if(!((inputs_value >> 3) & 0x01))  smsButtons |= INPUT_RIGHT;
-    if(!((inputs_value >> 8) & 0x01))  smsButtons |= INPUT_BUTTON1;
-    if(!((inputs_value >> 9) & 0x01))  smsButtons |= INPUT_BUTTON2;  
+    if(!((inputs_value >> 2) & 0x01))  smsButtons |= INPUT_DOWN;
+    if(!((inputs_value >> 3) & 0x01))  smsButtons |= INPUT_LEFT;
+    if(!((inputs_value >> 1) & 0x01))  smsButtons |= INPUT_UP;
+    if(!((inputs_value >> 0) & 0x01))  smsButtons |= INPUT_RIGHT;
+    if(!((inputs_value >> 6) & 0x01))  smsButtons |= INPUT_BUTTON1;
+    if(!((inputs_value >> 5) & 0x01))  smsButtons |= INPUT_BUTTON2;  
 
-    if(!((inputs_value >> 10) & 0x01))  smsSystem |= INPUT_START;
-    if(!((inputs_value >> 12) & 0x01))  smsSystem |= INPUT_PAUSE;
+    if(!((inputs_value >> 8) & 0x01))  smsSystem |= INPUT_START;
+    if(!((inputs_value >> 7) & 0x01))  smsSystem |= INPUT_PAUSE;
 
     //Special function to instant load/save progress pushing x and y buttons
-    if(!((inputs_value >> 6) & 0x01) && button_ss_sega) load_save_data();
-    if(!((inputs_value >> 7) & 0x01) && button_ss_sega) SMS_save_game();
+    //if(!((inputs_value >> 6) & 0x01) && button_ss_sega) load_save_data();
+    //if(!((inputs_value >> 7) & 0x01) && button_ss_sega) SMS_save_game();
 
     input.pad[0] = smsButtons;
     input.system = smsSystem;

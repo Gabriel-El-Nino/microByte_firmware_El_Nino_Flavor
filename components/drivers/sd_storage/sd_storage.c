@@ -166,35 +166,42 @@ uint8_t sd_game_list(char *game_list[100],uint8_t console){
         size_t nameLength = strlen(entry->d_name);
 
         // TODO: Rework game list maker, set by alphabetical order
-        if ((strcmp(entry->d_name + (nameLength - 4), ".nes") == 0) && console == NES) {
+        if ((strcmp(entry->d_name + (nameLength - 4), ".nes") == 0) && !(strncmp(entry->d_name, ".", 1) == 0) && console == NES) {
             game_list[i] = malloc(256);
             sprintf(game_list[i],"%s",entry->d_name);
             ESP_LOGI(TAG, "Found %s ",(char *)game_list[i]);
             //if(i>0) organize_list(game_list, i);
             i++;
         }
-        else if ((strcmp(entry->d_name + (nameLength - 3), ".gb") == 0) && console == GAMEBOY){
+        else if ((strcmp(entry->d_name + (nameLength - 4), ".smc") == 0) && !(strncmp(entry->d_name, ".", 1) == 0) && console == SNES){
             game_list[i] = malloc(256);
             sprintf(game_list[i],"%s",entry->d_name);
             ESP_LOGI(TAG, "Found %s ",(char *)game_list[i]);
             //if(i>0) organize_list(game_list, i);
             i++;
         }
-        else if ((strcmp(entry->d_name + (nameLength - 4), ".gbc") == 0) && console == GAMEBOY_COLOR){
+        else if ((strcmp(entry->d_name + (nameLength - 3), ".gb") == 0) && !(strncmp(entry->d_name, ".", 1) == 0) && console == GAMEBOY){
             game_list[i] = malloc(256);
             sprintf(game_list[i],"%s",entry->d_name);
             ESP_LOGI(TAG, "Found %s ",(char *)game_list[i]);
             //if(i>0) organize_list(game_list, i);
             i++;
         }
-        else if ((strcmp(entry->d_name + (nameLength - 4), ".sms") == 0) && console == SMS){
+        else if ((strcmp(entry->d_name + (nameLength - 4), ".gbc") == 0) && !(strncmp(entry->d_name, ".", 1) == 0) && console == GAMEBOY_COLOR){
             game_list[i] = malloc(256);
             sprintf(game_list[i],"%s",entry->d_name);
             ESP_LOGI(TAG, "Found %s ",(char *)game_list[i]);
             //if(i>0) organize_list(game_list, i);
             i++;
         }
-        else if ((strcmp(entry->d_name + (nameLength - 3), ".gg") == 0) && console == GG){
+        else if ((strcmp(entry->d_name + (nameLength - 4), ".sms") == 0) && !(strncmp(entry->d_name, ".", 1) == 0) && console == SMS){
+            game_list[i] = malloc(256);
+            sprintf(game_list[i],"%s",entry->d_name);
+            ESP_LOGI(TAG, "Found %s ",(char *)game_list[i]);
+            //if(i>0) organize_list(game_list, i);
+            i++;
+        }
+        else if ((strcmp(entry->d_name + (nameLength - 3), ".gg") == 0) && !(strncmp(entry->d_name, ".", 1) == 0) && console == GG){
             game_list[i] = malloc(256);
             sprintf(game_list[i],"%s",entry->d_name);
             ESP_LOGI(TAG, "Found %s ",(char *)game_list[i]);
@@ -327,6 +334,7 @@ bool sd_sav_exist(char *file_name, uint8_t emulator){
     if(emulator == GAMEBOY) sprintf(file_route,"/sdcard/GameBoy/Save_Data/%s.sav",file_name);
     else if(emulator == GAMEBOY_COLOR) sprintf(file_route,"/sdcard/GameBoy_Color/Save_Data/%s.sav",file_name);
     else if(emulator == NES) sprintf(file_route,"/sdcard/NES/Save_Data/%s.sav",file_name);
+    else if(emulator == SNES) sprintf(file_route,"/sdcard/SNES/Save_Data/%s.sav",file_name);
     else if(emulator == SMS) sprintf(file_route,"/sdcard/Master_System/Save_Data/%s.sav",file_name);
     else if(emulator == GG) sprintf(file_route,"/sdcard/Game_Gear/Save_Data/%s.sav",file_name);
 
@@ -346,6 +354,7 @@ void sd_sav_remove(char *file_name, uint8_t emulator){
     if(emulator == GAMEBOY) sprintf(file_route,"/sdcard/GameBoy/Save_Data/%s.sav",file_name);
     else if(emulator == GAMEBOY_COLOR) sprintf(file_route,"/sdcard/GameBoy_Color/Save_Data/%s.sav",file_name);
     else if(emulator == NES) sprintf(file_route,"/sdcard/NES/Save_Data/%s.sav",file_name);
+    else if(emulator == SNES) sprintf(file_route,"/sdcard/SNES/Save_Data/%s.sav",file_name);
     else if(emulator == SMS) sprintf(file_route,"/sdcard/Master_System/Save_Data/%s.sav",file_name);
     else if(emulator == GG) sprintf(file_route,"/sdcard/Game_Gear/Save_Data/%s.sav",file_name);
 

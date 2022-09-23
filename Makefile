@@ -9,9 +9,9 @@ PROJECT_VER  := 0.83
 EXTRA_COMPONENT_DIRS := components/GUI \
 						components/drivers/system_configuration \
 						components/drivers/display/backlight_ctrl \
-						components/drivers/display/ST7789 \
+						components/drivers/display/ILI9341 \
 						components/drivers/display/display_HAL \
-						components/drivers/user_input/TCA9555 \
+						components/drivers/user_input/PCF8574 \
 						components/drivers/user_input/user_input_HAL \
 						components/drivers/sd_storage \
 						components/drivers/battery \

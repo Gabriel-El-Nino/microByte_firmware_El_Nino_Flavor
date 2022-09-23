@@ -13,8 +13,7 @@
 
 #include "driver/gpio.h"
 
-#include "TCA9555.h"
-//#include "st7789.h"
+#include "PCF8574.h"
 #include "sound_driver.h"
 #include "user_input.h"
 
@@ -40,7 +39,7 @@ static const char *TAG = "user_input";
 void input_init(void){
     // Initalize mux driver
     ESP_LOGI(TAG,"Initalization of GPIO mux driver");
-    TCA955_init();
+    PCF8574_init();
 }
 
 //TODO: - Volume rapid change issue, it only goes up to 53 %.
@@ -50,10 +49,11 @@ void input_init(void){
 uint16_t input_read(void){
 
     //Get the mux values
-    uint16_t inputs_value = TCA9555_readInputs();
+    uint16_t inputs_value = PCF8574_readInputs();
+    ESP_LOGI(TAG,"PCF8574 input: %X",inputs_value);
 
     //Check if the menu button it was pushed
-    if(!((inputs_value >>11) & 0x01)){ //Temporary workaround !((inputs_value >>11) & 0x01) is the real button
+    if(!((inputs_value >> 4) & 0x01)){ //Temporary workaround !((inputs_value >>11) & 0x01) is the real button
 
             struct SYSTEM_MODE management;
 
@@ -61,50 +61,50 @@ uint16_t input_read(void){
             uint32_t actual_time= xTaskGetTickCount()/portTICK_PERIOD_MS;
 
             // Check if any of the special buttons was pushed
-            if(!((inputs_value >> 0) & 0x01)){
+            if(!((inputs_value >> 2) & 0x01)){
                 // Down arrow, volume down
-              /*  int volume_aux = audio_volume_get();
+                int volume_aux = audio_volume_get();
                 volume_aux -= 10;
                 if(volume_aux < 0)volume_aux = 0;
                 
                 management.mode = MODE_CHANGE_VOLUME;
                 management.volume_level = volume_aux;
                 
-                if( xQueueSend( modeQueue,&management, ( TickType_t ) 10) != pdPASS ) ESP_LOGE(TAG, "Queue send failed");*/
+                if( xQueueSend( modeQueue,&management, ( TickType_t ) 10) != pdPASS ) ESP_LOGE(TAG, "Queue send failed");
 
             } 
-            else if(!((inputs_value >> 2) & 0x01)){
+            else if(!((inputs_value >> 1) & 0x01)){
                 //UP arrow, volume UP
-               /* int volume_aux = audio_volume_get();
+                int volume_aux = audio_volume_get();
                 volume_aux += 10;
                 if(volume_aux > 100)volume_aux = 100;
                 
                 management.mode = MODE_CHANGE_VOLUME;
                 management.volume_level = volume_aux;
                 
-                if( xQueueSend( modeQueue,&management, ( TickType_t ) 10) != pdPASS ) ESP_LOGE(TAG, "Queue send failed");*/
+                if( xQueueSend( modeQueue,&management, ( TickType_t ) 10) != pdPASS ) ESP_LOGE(TAG, "Queue send failed");
             }
-            else if(!((inputs_value >> 1) & 0x01)){
-              /*  // Right arrow, brightness up
-                int brightness_aux = 0;//st7789_backlight_get();
+            else if(!((inputs_value >> 0) & 0x01)){
+                // Right arrow, brightness up
+                int brightness_aux = 0;//ILI9341_backlight_get();
                 brightness_aux += 10;
                 if(brightness_aux > 100)brightness_aux = 100;
                 
                 management.mode = MODE_CHANGE_BRIGHT;
                 management.volume_level = brightness_aux;
                 
-                if( xQueueSend( modeQueue,&management, ( TickType_t ) 10) != pdPASS ) ESP_LOGE(TAG, "Queue send failed");*/
+                if( xQueueSend( modeQueue,&management, ( TickType_t ) 10) != pdPASS ) ESP_LOGE(TAG, "Queue send failed");
             }
             else if(!((inputs_value >> 3) & 0x01)){
-             /*   // Left arrow, brightness down
-                int brightness_aux = 0;//st7789_backlight_get();
+                // Left arrow, brightness down
+                int brightness_aux = 0;//ILI9341_backlight_get();
                 brightness_aux -= 10;
                 if(brightness_aux < 0 )brightness_aux = 0;
                 
                 management.mode = MODE_CHANGE_BRIGHT;
                 management.volume_level = brightness_aux;
                 
-                if( xQueueSend( modeQueue,&management, ( TickType_t ) 10) != pdPASS ) ESP_LOGE(TAG, "Queue send failed");*/
+                if( xQueueSend( modeQueue,&management, ( TickType_t ) 10) != pdPASS ) ESP_LOGE(TAG, "Queue send failed");
             }
             else{
                 if((actual_time-menu_btn_time)>25){

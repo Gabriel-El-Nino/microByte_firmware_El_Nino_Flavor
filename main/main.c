@@ -79,8 +79,13 @@ void app_main(void){
     /**************** Basic initialization **************/
     system_init_config();
     //And the light was done. Initialize the LED control thread and perfom an "fade animation"
+    ESP_LOGI(TAG, "system_init_config main.c passed");
+
     LED_init();
+    ESP_LOGI(TAG, "LED_init main.c passed");
+
     LED_mode(LED_FADE_ON); //There are a few animations available to choose.
+    ESP_LOGI(TAG, "LED_mode main.c passed");
 
     //This is just for debugging pourposes. This MCU is a little weird in terms of memory management. 
     system_info();
@@ -90,12 +95,14 @@ void app_main(void){
     //Start the display Hardware Abstraction Layer (Basically just initi the display). This layer is just to simplify the port process if you want to use 
     // a different display. 
     display_HAL_init();
+    ESP_LOGI(TAG, "display_HAL_init main.c passed");
 
     //This initialize the display's backlight control. This is a dirty backligh control module, I plan to change in a near future.
     backlight_init();
 
     int8_t backlight_level = system_get_config(SYS_BRIGHT);
     if(backlight_level > -1) backlight_set(backlight_level);
+    ESP_LOGI(TAG, "backlight_init main.c passed");
 
     /**************** Boot status **************/
 
@@ -123,16 +130,24 @@ void app_main(void){
     /**************** Peripherals initialization **************/
     //Initialize the peripherals
     audio_init(AUDIO_SAMPLE_16KHZ);
+    ESP_LOGI(TAG, "audio_init main.c passed");
+
     sd_init();
+    ESP_LOGI(TAG, "sd_init main.c passed");
+
 
     // The gamepad control and battery run on thread to avoid block on the code execution while it's running.
     input_init();
+    ESP_LOGI(TAG, "input_init main.c passed");
+    
     battery_init();
+    ESP_LOGI(TAG, "battery_init main.c passed");
 
     //If we are executing an update, and we reach this point, congratulations, the update was a succed!
     // Now we can disable the roll-back feature which is basically a bootloader tool which roll back to the previous
     //firmware if the new one doesn't work properly.
     update_check();
+    ESP_LOGI(TAG, "update_check main.c passed");
 
     //The boot animation is fancy, let's wait a little to see it
     if(boot_screen_ani) vTaskDelay(2000 / portTICK_RATE_MS);
@@ -140,16 +155,18 @@ void app_main(void){
     //Once we don't need the boot screen, we will delete the task and free the resources.
     vTaskDelete(intro_handler);
     boot_screen_free();
+    ESP_LOGI(TAG, "boot_screen_free main.c passed");
 
     /**************** GUI initialization **************/
 
     //This is embarrasing, is a temporary fix. The boot animation library use little endian logic and the rest of the firmware use big endian.
     //So, for now I'm not able to change it on the animation library. This function basically tell to the display to use big or little endian logic.
     display_HAL_change_endian();
+    ESP_LOGI(TAG, "display_HAL_change_endian main.c passed");
 
     //Now we are ready to execute the GUI.
     xTaskCreatePinnedToCore(GUI_task, "Graphical User Interface", 1024*6, NULL, 1, &gui_handler, 0);
-   
+    ESP_LOGI(TAG, "xTaskCreatPinnedToCore main.c passed");
 
     bool game_running = false;
     bool game_executed = false;
@@ -158,16 +175,22 @@ void app_main(void){
     //Comments in progress
 
     while(1){
+        ESP_LOGI(TAG,"While loop entered");
+        ESP_LOGI(TAG, "Is a game running?: %d", game_running);
+        ESP_LOGI(TAG, "Is a game executed?: %d", game_executed);
         
         if( xQueueReceive(modeQueue, &management ,portMAX_DELAY)){
+            ESP_LOGI(TAG,"xQueueReceive true");
+            
             switch(management.mode){
-
                 case MODE_GAME:
                     if(management.status == 1){//Execute the emulator.
                         battery_game_mode(true); //Block periodic battery status messages when your're playing.
+                        ESP_LOGI(TAG,"Emulator here we go!");
 
                         //Check which console you've selected, execute the LED load animation and load the game.
                         if(management.console == GAMEBOY_COLOR || management.console == GAMEBOY){
+                            ESP_LOGI(TAG,"Gameboy emulator started!");
                             LED_mode(LED_LOAD_ANI);
                             vTaskSuspend(gui_handler);
                             gnuboy_execute_game(management.game_name,management.console, management.load_save_game);
@@ -181,6 +204,7 @@ void app_main(void){
 
                         }
                         else if(management.console == NES){
+                            ESP_LOGI(TAG,"NES emulator started!");
                             LED_mode(LED_LOAD_ANI);
                             vTaskSuspend(gui_handler);
                             NES_start(management.game_name);
@@ -195,7 +219,23 @@ void app_main(void){
                             LED_mode(LED_TURN_OFF);
                             LED_mode(LED_FADE_ON);
                         }
+                        // else if(management.console == SNES){
+                        //     ESP_LOGI(TAG,"SNES emulator started!");
+                        //     LED_mode(LED_LOAD_ANI);
+                        //     vTaskSuspend(gui_handler);
+                        //     SNES_start(management.game_name);
+                        //     if(management.load_save_game){
+                        //         vTaskDelay(1500 / portTICK_RATE_MS);
+                        //         SNES_load_game();
+                        //     }
+                        //     game_executed = true;
+                        //     game_running=true;
+                        //     console_running = management.console;
+                        //     LED_mode(LED_TURN_OFF);
+                        //     LED_mode(LED_FADE_ON);
+                        // }
                         else if(management.console == SMS || management.console == GG){
+                            ESP_LOGI(TAG,"SEGA emulator started!");
                             LED_mode(LED_LOAD_ANI);
                             vTaskSuspend(gui_handler);
                             SMS_execute_game(management.game_name,management.console,management.load_save_game);
@@ -210,9 +250,10 @@ void app_main(void){
                     else{
                         if(game_running && game_executed){
                             //Suspend console main task to avoid conflicts.
-                           if(console_running == GAMEBOY_COLOR || console_running == GAMEBOY ) gnuboy_suspend();
-                           else if(console_running == NES) NES_suspend();
-                           else if(console_running == SMS || console_running == GG) SMS_suspend();
+                            ESP_LOGI(TAG,"Console main task suspended to avoid conflict");
+                            if(console_running == GAMEBOY_COLOR || console_running == GAMEBOY ) gnuboy_suspend();
+                            else if(console_running == NES) NES_suspend();
+                            else if(console_running == SMS || console_running == GG) SMS_suspend();
 
                             // To avoid noise whe is suspend the audio task, is necesary to clean the dma from previous data.
                             audio_terminate();
@@ -222,6 +263,7 @@ void app_main(void){
                             game_running=false;
                         }
                         else if(!game_running && game_executed){ //This case is only used if we push menu button once you're on the on game menu
+                            ESP_LOGI(TAG,"Menu button pushed while on the game menu");
                             vTaskSuspend(gui_handler);
                             // Is necessary this delay to avoid bouncing between suspend and delay state
                             vTaskDelay(250 / portTICK_RATE_MS);
@@ -232,9 +274,11 @@ void app_main(void){
                         }
 
                     }
+                ESP_LOGI(TAG,"Breaking case MODE_GAME:");    
                 break;
 
                 case MODE_SAVE_GAME:
+                    ESP_LOGI(TAG,"Save Game");
                     if(management.console == NES) NES_save_game();
                     else if(management.console == GAMEBOY_COLOR || management.console == GAMEBOY) gnuboy_save();
                     else if(management.console == SMS || management.console == GG) SMS_save_game();     
@@ -256,6 +300,7 @@ void app_main(void){
                 case MODE_BATTERY_ALERT:
                     //If in play mode, pause game and show if you wanna save
                     //If in the menu just show the message
+                    ESP_LOGI(TAG,"Battery alert");
                     gnuboy_suspend();
                     audio_terminate();
                             // Is necessary this delay to avoid bouncing between suspend and delay state.
@@ -286,6 +331,9 @@ void app_main(void){
                     esp_restart();
                 break;
             }
+        }
+        else{
+            ESP_LOGE(TAG,"xQueueReceive false");
         }
         
         

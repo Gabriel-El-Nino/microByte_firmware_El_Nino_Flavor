@@ -84,16 +84,19 @@ void batteryTask(void *arg){
         if(battery_status.voltage < 3576)  percentage_aux = 1.00;
         battery_status.percentage = (uint8_t)percentage_aux;
 
+
         //When you're charging the battery, the percentage can higher than 100%
         if(battery_status.percentage > 100) battery_status.percentage = 100;
 
-        if(!game_mode_active){
-            // If we're playing, we don't need the battery info. We only need the an alert if we're on very low percentage
-            if( xQueueSend( batteryQueue,&battery_status, ( TickType_t ) 10) != pdPASS ){
-                ESP_LOGE(TAG,"Battery queue send fail");
-            }
-        }
+        // if(!game_mode_active){
+        //     // If we're playing, we don't need the battery info. We only need the an alert if we're on very low percentage
+        //     if( xQueueSend( batteryQueue,&battery_status, ( TickType_t ) 10) != pdPASS ){
+        //         ESP_LOGE(TAG,"Battery queue send fail");
+        //     }
+        // }
         
+        ESP_LOGI(TAG, "Battery voltage in mAh: %d", battery_status.voltage);
+        ESP_LOGI(TAG, "Battery percentage: %d", battery_status.percentage);
 
         if(battery_status.percentage<=10 && battery_alert != true){
             //Send battery alert if the level is below 10%

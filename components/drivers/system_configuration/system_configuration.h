@@ -2,16 +2,17 @@
  *    Display pin configuration
  * ******************************/
 
-#define SCR_MODEL       ST7789
-#define SCR_WIDTH       240
+#define SCR_MODEL       ILI9341
+#define SCR_WIDTH       320
 #define SCR_HEIGHT      240
 #define SCR_BUFFER_SIZE 20
 
 #define HSPI_MOSI        13
 #define HSPI_CLK         14
+#define HSPI_CS          15
 #define HSPI_RST         33
 #define HSPI_DC          32
-#define HSPI_BACKLIGTH   15
+#define HSPI_BACKLIGTH   12
 #define HSPI_CLK_SPEED   60*1000*1000 // 60Mhz
 
 
@@ -22,7 +23,7 @@
 #define VSPI_MOSI       23 
 #define VSPI_MISO       19 
 #define VSPI_CLK        18        
-#define VSPI_CS0        5                  
+#define VSPI_CS0        4                  
 
 /********************************
  *   Pin Mux pin configuration
@@ -33,6 +34,7 @@
 #define MUX_INT         34
 #define I2C_CLK         400*1000 //400Khz
 #define I2C_dev_address 0x20
+#define Start_button    5        // Extra button
 
 /********************************
  *          I2S Pin

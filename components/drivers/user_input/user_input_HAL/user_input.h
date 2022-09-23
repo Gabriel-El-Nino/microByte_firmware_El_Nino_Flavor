@@ -32,6 +32,19 @@ void input_init(void);
  * 
  *  - 9 -> A    - 8 -> B    - 7 -> Y
  *  - 6 -> X    - 5 -> R    - 13 -> L
+ * 
+ * -----
+ * 
+ * New bitout
+ *  - 0 -> Right     - 2 -> Dowm
+ *  - 1 -> Up        - 3 -> Left
+ * 
+ *  - 4 -> Menu
+ *  - 7 -> Select 
+ *  - 9 -> Start
+ *
+ *  - 5 -> A
+ *  - 6 -> B
  */
 
 uint16_t input_read(void);
