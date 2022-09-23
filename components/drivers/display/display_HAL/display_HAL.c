@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "ST7789_driver.h"
+#include "ILI9341_driver.h"
 #include "display_HAL.h"
 #include "system_configuration.h"
 
@@ -42,16 +42,17 @@ extern uint16_t myPalette[];
 /**********************
 *      VARIABLES
 **********************/
-st7789_driver_t display = {
+ILI9341_driver_t display = {
 		.pin_reset = HSPI_RST,
 		.pin_dc = HSPI_DC,
+        .pin_cs = HSPI_CS,
 		.pin_mosi = HSPI_MOSI,
 		.pin_sclk = HSPI_CLK,
 		.spi_host = HSPI_HOST,
 		.dma_chan = 1,
-		.display_width = 240,
-		.display_height = 240,
-		.buffer_size = 20 * 240, // 2 buffers with 20 lines
+		.display_width = SCR_WIDTH,
+		.display_height = SCR_HEIGHT,
+	    .buffer_size = SCR_BUFFER_SIZE*SCR_WIDTH, // 2 buffers with 20 lines
 	};
 
 static const char *TAG = "Display_HAL";
@@ -70,11 +71,11 @@ static uint8_t getPixelNES(const uint8_t *bufs, uint16_t x, uint16_t y, uint16_t
 // Display HAL basic functions.
 
 bool display_HAL_init(void){
-    return ST7789_init(&display);
+    return ILI9341_init(&display);
 }
 
 void display_HAL_clear(){
-    ST7789_fill_area(&display, WHITE, 0, 0, display.display_width, display.display_height);
+    ILI9341_fill_area(&display, BLACK, 0, 0, display.display_width, display.display_height);
 }
 
 // Boot Screen Functions
@@ -89,13 +90,12 @@ size_t display_HAL_get_buffer_size(){
 void display_HAL_boot_frame(uint16_t * buffer){
     // The boot animation to the buffer
     display.current_buffer = buffer;
-
     //Send to the driver layer and change the buffer
-    ST7789_swap_buffers(&display);
+    ILI9341_swap_buffers(&display);
 }
 
 void display_HAL_change_endian(){
-    ST7789_set_endian(&display);
+    ILI9341_set_endian(&display);
 }
 
 // LVGL library releated functions
@@ -104,15 +104,15 @@ void display_HAL_flush(lv_disp_drv_t * drv, const lv_area_t * area, lv_color_t *
     uint32_t size = lv_area_get_width(area) * lv_area_get_height(area);
 
     //Set the area to print on the screen
-    ST7789_set_window(&display,area->x1,area->y1,area->x2 ,area->y2);
+    ILI9341_set_window(&display,area->x1,area->y1,area->x2 ,area->y2);
 
     //Save the buffer data and the size of the data to send
     display.current_buffer = (void *)color_map;
     display.buffer_size = size;
 
     //Send it
-    //ST7789_write_pixels(&display, display.current_buffer, display.buffer_size);
-    ST7789_swap_buffers(&display);
+    //ILI9341_write_pixels(&display, display.current_buffer, display.buffer_size);
+    ILI9341_swap_buffers(&display);
 
     //Tell to LVGL that is ready to send another frame
     lv_disp_flush_ready(drv);
@@ -132,13 +132,13 @@ void display_HAL_gb_frame(const uint16_t *data){
             
             sending_line = calc_line;
             calc_line = (calc_line == 1) ? 0 : 1;
-            ST7789_write_lines(&display,y, 0, SCR_WIDTH, line[sending_line], 1);
+            ILI9341_write_lines(&display,y, 0, SCR_WIDTH, line[sending_line], 1);
         }
     }
     else{
         short outputHeight = SCR_HEIGHT;
-        short outputWidth = 240;
-        short xpos = (SCR_WIDTH - outputWidth) / 2;
+        short outputWidth = GBC_FRAME_WIDTH + (SCR_HEIGHT - GBC_FRAME_HEIGHT);
+        short xpos = (SCR_WIDTH - outputWidth)/2;
 
         for (int y = 0; y < outputHeight; y += LINE_COUNT)
         {
@@ -158,8 +158,8 @@ void display_HAL_gb_frame(const uint16_t *data){
             
             sending_line = calc_line;
             calc_line = (calc_line == 1) ? 0 : 1;
-           // ST7789_swap_buffers(&display);
-            ST7789_write_lines(&display,y, xpos, outputWidth, line[sending_line], LINE_COUNT);
+           // ILI9341_swap_buffers(&display);
+            ILI9341_write_lines(&display,y, xpos, outputWidth, line[sending_line], LINE_COUNT);
         }  
     }
 }
@@ -177,13 +177,13 @@ void display_HAL_NES_frame(const uint8_t *data){
             
             sending_line = calc_line;
             calc_line = (calc_line == 1) ? 0 : 1;
-            ST7789_write_lines(&display,y, 0, SCR_WIDTH, line[sending_line], 1);
+            ILI9341_write_lines(&display,y, 0, SCR_WIDTH, line[sending_line], 1);
         }
     }
     else{
-        short outputHeight = 240;
-        short outputWidth = 240 + (240 - 240);
-        short xpos = (240 - outputWidth) / 2;
+        short outputHeight = SCR_HEIGHT;
+        short outputWidth = NES_FRAME_WIDTH + (SCR_HEIGHT - NES_FRAME_HEIGHT);
+        short xpos = (SCR_WIDTH - outputWidth)/2;
 
         for (int y = 0; y < outputHeight; y += LINE_COUNT){
             for (int i = 0; i < LINE_COUNT; ++i){
@@ -199,7 +199,7 @@ void display_HAL_NES_frame(const uint8_t *data){
 
             sending_line = calc_line;
             calc_line = (calc_line == 1) ? 0 : 1;
-            ST7789_write_lines(&display,y, xpos, outputWidth, line[sending_line], LINE_COUNT);
+            ILI9341_write_lines(&display,y, xpos, outputWidth, line[sending_line], LINE_COUNT);
         }
     }
 }
@@ -217,13 +217,13 @@ void display_HAL_SMS_frame(const uint8_t *data, uint16_t color[], bool GAMEGEAR)
             
             sending_line = calc_line;
             calc_line = (calc_line == 1) ? 0 : 1;
-            ST7789_write_lines(&display,y, 0, SCR_WIDTH, line[sending_line], 1);
+            ILI9341_write_lines(&display,y, 0, SCR_WIDTH, line[sending_line], 1);
         }
     }
     else{
         short outputHeight = SCR_HEIGHT;
-        short outputWidth = SCR_WIDTH;
-        short xpos = (SCR_WIDTH - outputWidth) / 2;
+        short outputWidth = SMS_FRAME_WIDTH + (SCR_HEIGHT - SMS_FRAME_HEIGHT);
+        short xpos = (SCR_WIDTH - outputWidth)/2;
 
         for (int y = 0; y < outputHeight; y += LINE_COUNT){
             for (int i = 0; i < LINE_COUNT; ++i){
@@ -241,7 +241,8 @@ void display_HAL_SMS_frame(const uint8_t *data, uint16_t color[], bool GAMEGEAR)
             }
             sending_line = calc_line;
             calc_line = (calc_line == 1) ? 0 : 1;
-            ST7789_write_lines(&display,y, xpos, outputWidth, line[sending_line], LINE_COUNT);
+            
+            ILI9341_write_lines(&display,y, xpos, outputWidth, line[sending_line], LINE_COUNT);
         }
     }
 

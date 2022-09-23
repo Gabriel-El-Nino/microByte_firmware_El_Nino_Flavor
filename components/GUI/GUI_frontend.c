@@ -14,6 +14,7 @@
 
 #include "GUI.h"
 #include "system_manager.h"
+#include "system_configuration.h"
 #include "sd_storage.h"
 #include "user_input.h"
 #include "sound_driver.h"
@@ -189,8 +190,8 @@ void GUI_frontend(void){
     //This bar shows the battery status, if the SD card is attached
     // or if any wireless communication is active.
     notification_cont = lv_cont_create(lv_layer_top(), NULL);
-    lv_obj_align_origo(notification_cont, NULL, LV_ALIGN_IN_TOP_LEFT, 35, 20);
-    lv_obj_set_size(notification_cont,250,30);
+    lv_obj_align_origo(notification_cont, NULL, LV_ALIGN_IN_TOP_LEFT,46, 20);
+    lv_obj_set_size(notification_cont,SCR_WIDTH-10,30);
     lv_cont_set_layout(notification_cont, LV_LAYOUT_OFF);
 
     /* Battery Bar */
@@ -316,25 +317,25 @@ static void on_game_menu(){
     sub_menu = true;
 
     list_on_game = lv_list_create(lv_layer_top(), NULL);
-    lv_obj_set_size(list_on_game, 240, 240);
+    lv_obj_set_size(list_on_game, SCR_WIDTH, SCR_HEIGHT);
     lv_obj_align(list_on_game, NULL, LV_ALIGN_CENTER, 0, 0);
 
     
     lv_obj_t * list_btn;
 
-    list_btn = lv_list_add_btn(list_on_game, LV_SYMBOL_HOME, "Resume Game");
+    list_btn = lv_list_add_btn(list_on_game, LV_SYMBOL_HOME, " Resume Game");
     lv_obj_set_event_cb(list_btn, list_game_menu_cb);
 
-    list_btn = lv_list_add_btn(list_on_game, LV_SYMBOL_SAVE, "Save Game");
+    list_btn = lv_list_add_btn(list_on_game, LV_SYMBOL_SAVE, " Save Game");
     lv_obj_set_event_cb(list_btn, list_game_menu_cb);
 
-    list_btn = lv_list_add_btn(list_on_game, LV_SYMBOL_VOLUME_MAX, "Volume");
+    list_btn = lv_list_add_btn(list_on_game, LV_SYMBOL_VOLUME_MAX, " Volume");
     lv_obj_set_event_cb(list_btn, list_game_menu_cb);
 
-    list_btn = lv_list_add_btn(list_on_game, LV_SYMBOL_IMAGE, "Brightness");
+    list_btn = lv_list_add_btn(list_on_game, LV_SYMBOL_IMAGE, " Brightness");
     lv_obj_set_event_cb(list_btn, list_game_menu_cb);
 
-    list_btn = lv_list_add_btn(list_on_game, LV_SYMBOL_CLOSE, "Exit");
+    list_btn = lv_list_add_btn(list_on_game, LV_SYMBOL_CLOSE, " Exit");
     lv_obj_set_event_cb(list_btn, list_game_menu_cb);
 
     lv_group_add_obj(group_interact, list_on_game);
@@ -395,7 +396,7 @@ static void game_list_cb(lv_obj_t * parent, lv_event_t e){
 
         container_header_game_icon = lv_cont_create(lv_layer_top(), NULL);
         lv_obj_align(container_header_game_icon, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
-        lv_obj_set_size(container_header_game_icon,240,40);
+        lv_obj_set_size(container_header_game_icon,SCR_WIDTH,40);
         lv_cont_set_layout(container_header_game_icon, LV_LAYOUT_OFF);
 
         lv_obj_t * console_label = lv_label_create(container_header_game_icon, NULL);
@@ -416,18 +417,18 @@ static void game_list_cb(lv_obj_t * parent, lv_event_t e){
             lv_obj_set_hidden(list_emulators_main,true);
             ESP_LOGI(TAG,"Selected NES");
         }
-        else if(strcmp(lv_list_get_btn_text(parent),"SNES")==0){
-            emulator_selected = SNES;
+        // else if(strcmp(lv_list_get_btn_text(parent),"SNES")==0){
+        //     emulator_selected = SNES;
 
-            lv_label_set_text(console_label, "SNES");
-            lv_obj_align(console_label, container_header_game_icon, LV_ALIGN_CENTER, 25, 0);
-            lv_img_set_src(console_image, &snes_icon);
-            lv_obj_align(console_image, container_header_game_icon, LV_ALIGN_CENTER, -40, 0);
+        //     lv_label_set_text(console_label, "SNES");
+        //     lv_obj_align(console_label, container_header_game_icon, LV_ALIGN_CENTER, 25, 0);
+        //     lv_img_set_src(console_image, &snes_icon);
+        //     lv_obj_align(console_image, container_header_game_icon, LV_ALIGN_CENTER, -40, 0);
 
-            lv_obj_set_hidden(list_emulators_main,true);
+        //     lv_obj_set_hidden(list_emulators_main,true);
 
-            ESP_LOGI(TAG,"Selected SNES");
-        }
+        //     ESP_LOGI(TAG,"Selected SNES");
+        // }
         else if(strcmp(lv_list_get_btn_text(parent),"GameBoy")==0){
             emulator_selected = GAMEBOY;
 
@@ -563,6 +564,10 @@ static void emulators_list_cb(lv_obj_t * parent, lv_event_t e){
         lv_obj_t * emulator_NES_btn = lv_list_add_btn(list_emulators_main,  &NES_icon, "NES");
         lv_obj_set_size(emulator_NES_btn, 200, 10);
         lv_obj_set_event_cb(emulator_NES_btn, game_list_cb);
+
+        // lv_obj_t * emulator_SNES_btn = lv_list_add_btn(list_emulators_main,  &snes_icon, "SNES");
+        // lv_obj_set_size(emulator_SNES_btn, 200, 10);
+        // lv_obj_set_event_cb(emulator_SNES_btn, game_list_cb);
 
         lv_obj_t * emulator_GB_btn = lv_list_add_btn(list_emulators_main,  &gameboy_icon, "GameBoy");
         lv_obj_set_size(emulator_GB_btn, 200, 20);
@@ -1284,7 +1289,7 @@ static bool user_input_task(lv_indev_drv_t * indev_drv, lv_indev_data_t * data){
     // Get the status of the multiplexer driver
     uint16_t inputs_value =  input_read();
 
-    if(!((inputs_value >> 0) & 0x01)){
+    if(!((inputs_value >> 2) & 0x01)){
         // Button Down pushed
         uint32_t actual_time= xTaskGetTickCount()/portTICK_PERIOD_MS;
 
@@ -1298,7 +1303,7 @@ static bool user_input_task(lv_indev_drv_t * indev_drv, lv_indev_data_t * data){
         }
     }
 
-    if(!((inputs_value >> 1) & 0x01)){
+    if(!((inputs_value >> 3) & 0x01)){
         // Button Left pushed
         uint32_t actual_time= xTaskGetTickCount()/portTICK_PERIOD_MS;
         if(sub_menu){
@@ -1319,7 +1324,7 @@ static bool user_input_task(lv_indev_drv_t * indev_drv, lv_indev_data_t * data){
         } 
     }
 
-    if(!((inputs_value >> 2) & 0x01)){
+    if(!((inputs_value >> 1) & 0x01)){
         // Button up pushed
         uint32_t actual_time= xTaskGetTickCount()/portTICK_PERIOD_MS;
         if((actual_time-btn_up_time) > bouncing_time){
@@ -1330,7 +1335,7 @@ static bool user_input_task(lv_indev_drv_t * indev_drv, lv_indev_data_t * data){
          
     }
 
-    if(!((inputs_value >> 3) & 0x01)){
+    if(!((inputs_value >> 0) & 0x01)){
         // Button right pushed
         uint32_t actual_time= xTaskGetTickCount()/portTICK_PERIOD_MS;
 
@@ -1352,7 +1357,7 @@ static bool user_input_task(lv_indev_drv_t * indev_drv, lv_indev_data_t * data){
         } 
     }
 
-    if(!((inputs_value >> 11) & 0x01)){
+    if(!((inputs_value >> 4) & 0x01)){
         // Button menu pushed
         uint32_t actual_time= xTaskGetTickCount()/portTICK_PERIOD_MS;
 
@@ -1369,7 +1374,7 @@ static bool user_input_task(lv_indev_drv_t * indev_drv, lv_indev_data_t * data){
         }
     }
 
-    if(!((inputs_value >> 8) & 0x01)){
+    if(!((inputs_value >> 5) & 0x01)){
         // Button B pushed
         uint32_t actual_time= xTaskGetTickCount()/portTICK_PERIOD_MS;
 
@@ -1380,7 +1385,7 @@ static bool user_input_task(lv_indev_drv_t * indev_drv, lv_indev_data_t * data){
         }
     }
 
-    if(!((inputs_value >> 9) & 0x01)){
+    if(!((inputs_value >> 6) & 0x01)){
         // Button A pushed
         uint32_t actual_time= xTaskGetTickCount()/portTICK_PERIOD_MS;
 

@@ -195,14 +195,32 @@ static void osd_freeinput(void){}
 
 void osd_getinput(void)
 {
-    uint16_t b = input_read();
+    uint16_t inputs_value = input_read();
 	const int ev[16] = {
-		event_joypad1_down, event_joypad1_left, event_joypad1_up, event_joypad1_right, 0, 0, (btn_ss & 1) ? event_state_save : 0, (btn_ss & 1) ? event_state_load : 0,
-		event_joypad1_b, event_joypad1_a, event_joypad1_start, 0, event_joypad1_select, 0, 0, 0};
+		event_joypad1_right, 					
+		event_joypad1_up, 					
+		event_joypad1_down, 						
+		event_joypad1_left, 
+		0, 
+		event_joypad1_b, 
+		event_joypad1_a, 
+		event_joypad1_select,
+		event_joypad1_start, 
+		0, 
+		0, 
+		0, 
+		0, 
+		0, 
+		0,
+		0};
+
+		// (btn_ss & 1) ? event_state_save : 0, 
+		// (btn_ss & 1) ? event_state_load : 0,
+		
 	static int oldb = 0xffff;
-	int chg = b ^ oldb;
+	int chg = inputs_value ^ oldb;
 	int x;
-	oldb = b;
+	oldb = inputs_value;
 	event_t evh;
 
 	for (x = 0; x < 16; x++)
@@ -211,10 +229,10 @@ void osd_getinput(void)
 		{
 			evh = event_get(ev[x]);
 			if (evh)
-				evh((b & 1) ? INP_STATE_BREAK : INP_STATE_MAKE);
+				evh((inputs_value & 1) ? INP_STATE_BREAK : INP_STATE_MAKE);
 		}
 		chg >>= 1;
-		b >>= 1;
+		inputs_value >>= 1;
 	}
 }
 

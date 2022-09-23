@@ -375,18 +375,18 @@ static void input_set(){
 
     uint16_t inputs_value =  input_read();
 
-    pad_set(PAD_DOWN,!((inputs_value >> 0) & 0x01));
-    pad_set(PAD_LEFT,!((inputs_value >> 1) & 0x01));
-    pad_set(PAD_UP,!((inputs_value >> 2) & 0x01));
-    pad_set(PAD_RIGHT,!((inputs_value >> 3) & 0x01));
-    pad_set(PAD_B,!((inputs_value >> 8) & 0x01));
-    pad_set(PAD_A,!((inputs_value >> 9) & 0x01));
-    pad_set(PAD_START,!((inputs_value >> 10) & 0x01));
-    pad_set(PAD_SELECT,!((inputs_value >> 12) & 0x01));
+    pad_set(PAD_DOWN,!((inputs_value >> 2) & 0x01));
+    pad_set(PAD_LEFT,!((inputs_value >> 3) & 0x01));
+    pad_set(PAD_UP,!((inputs_value >> 1) & 0x01));
+    pad_set(PAD_RIGHT,!((inputs_value >> 0) & 0x01));
+    pad_set(PAD_B,!((inputs_value >> 5) & 0x01));
+    pad_set(PAD_A,!((inputs_value >> 6) & 0x01));
+    pad_set(PAD_START,!((inputs_value >> 8) & 0x01));
+    pad_set(PAD_SELECT,!((inputs_value >> 7) & 0x01));
 
     //Special function to instant load/save progress pushing x and y buttons
-    if(!((inputs_value >> 6) & 0x01) && button_ss_gb) gbc_state_load(game_name,console_use);
-    if(!((inputs_value >> 7) & 0x01) && button_ss_gb) gnuboy_save();
+    //if(!((inputs_value >> 6) & 0x01) && button_ss_gb) gbc_state_load(game_name,console_use);
+    //if(!((inputs_value >> 7) & 0x01) && button_ss_gb) gnuboy_save();
 
 }
 

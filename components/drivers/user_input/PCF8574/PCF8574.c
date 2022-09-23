@@ -5,7 +5,7 @@
 
 #include "esp_log.h"
 #include "driver/i2c.h"
-
+#include "PCF8574.h"
 #include "system_configuration.h"
 
 /*********************
@@ -20,16 +20,16 @@
 *  STATIC PROTOTYPES
 **********************/
 
-static const char *TAG = "TCA9555";
+static const char *TAG = "PCF8574";
 
-static int8_t TCA955_I2C_write(uint8_t I2C_bus, uint8_t *data, size_t size);
-static int8_t TCA955_I2C_read(uint8_t I2C_bus, uint8_t *data, size_t size);
+static int8_t PCF8574_I2C_write(uint8_t I2C_bus, uint8_t *data, size_t size);
+static int8_t PCF8574_I2C_read(uint8_t I2C_bus, uint8_t *data, size_t size);
 
 /**********************
 *   GLOBAL FUNCTIONS
 **********************/
 
-bool TCA955_init(void){
+bool PCF8574_init(void){
     //Init I2C bus as master
     esp_err_t ret;
 
@@ -51,32 +51,42 @@ bool TCA955_init(void){
     }
 
     //Check if the device is connected
-    if(TCA955_I2C_write(0,0x00,1) == -1){
-        ESP_LOGE(TAG,"TCA9555 not detected");
+    if(PCF8574_I2C_write(0,0x00,1) == -1){
+        ESP_LOGE(TAG,"PCF8574 not detected");
         return false;
     }
 
-    ESP_LOGI(TAG,"TCA9555 detected");
+    ESP_LOGI(TAG,"PCF8574 detected");
+
+    // Extra GPIO
+    gpio_pad_select_gpio(Start_button);
+    gpio_set_direction(Start_button, GPIO_MODE_INPUT);
+    gpio_set_pull_mode(Start_button, GPIO_PULLUP_ONLY);
 
     return true;
 }
 
-int16_t TCA9555_readInputs(void){
+int16_t PCF8574_readInputs(void){
     uint8_t data[2] = {0xFF,0xFF};
 
-    TCA955_I2C_write(0, READ_REG, 1);
-    TCA955_I2C_read(0, data, 2);
+    PCF8574_I2C_write(0, data, 3); // really dont know why but 3 fixed it and got me my FF
+    PCF8574_I2C_read(0, data, 2);
 
-    uint16_t data_out = ((uint16_t)data[1] << 8) | data[0];
+    uint16_t data_out = (uint16_t)data[0] | 0xFF00;
+    
+    if(!gpio_get_level(Start_button)){
+        data_out = data_out - 256;
+    }
 
     return data_out;
 }
 
-bool TCA9555_pinMode(uint8_t pin){
-    uint16_t pinMode = 0xFFFF;
+bool PCF8574_pinMode(uint8_t pin){
+    ESP_LOGI(TAG,"pinMode seting pin: %d", pin);
+    uint8_t pinMode = 0xFF;
 
-    if(pin > 16){
-        ESP_LOGE(TAG, "Pin out of the range (0-16)");
+    if(pin > 7){
+        ESP_LOGE(TAG, "Pin out of the range (0-7)");
         return -1;
     }
 
@@ -86,9 +96,12 @@ bool TCA9555_pinMode(uint8_t pin){
     uint8_t pinMode_l = (uint8_t) (pinMode & 0X00FF);
     uint8_t data[3] = {CONFIG_REG,pinMode_l,pinMode_h};
 
-    if(TCA955_I2C_write(0, data, 3) == -1 ){
+    if(PCF8574_I2C_write(0, data, 3) == -1 ){
         ESP_LOGE(TAG, "Error setting pinMode");
         return false;
+    }
+    else{
+        ESP_LOGI(TAG, "Pin has been set");
     }
    
     return true;
@@ -98,7 +111,7 @@ bool TCA9555_pinMode(uint8_t pin){
  *   STATIC FUNCTIONS
  **********************/
 
-static int8_t TCA955_I2C_write(uint8_t I2C_bus, uint8_t *data, size_t size){
+static int8_t PCF8574_I2C_write(uint8_t I2C_bus, uint8_t *data, size_t size){
 
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
@@ -118,7 +131,7 @@ static int8_t TCA955_I2C_write(uint8_t I2C_bus, uint8_t *data, size_t size){
 
 }
 
-static int8_t TCA955_I2C_read(uint8_t I2C_bus, uint8_t *data, size_t size){
+static int8_t PCF8574_I2C_read(uint8_t I2C_bus, uint8_t *data, size_t size){
 
    if (size == 0) {
         return ESP_OK;

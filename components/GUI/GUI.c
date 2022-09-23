@@ -7,19 +7,21 @@
 #include "freertos/task.h"
 #include "esp_freertos_hooks.h"
 #include "freertos/semphr.h"
+#include "system_configuration.h"
 
 #include "GUI.h"
-//#include "st7789.h"
 #include "display_HAL.h"
 #include "GUI_frontend.h"
 
 #include "LVGL/lvgl.h"
 
+#include "esp_log.h"
+
 /*********************
  *      DEFINES
  *********************/
 #define LV_TICK_PERIOD_MS 10
-#define DISP_BUF_SIZE   240*20 // Horizontal Res * 40 vetical pixels
+#define DISP_BUF_SIZE  SCR_WIDTH * 20 // Horizontal Res * 40 vetical pixels
 
 /**********************
  *  STATIC PROTOTYPES
@@ -31,6 +33,7 @@ static lv_disp_drv_t disp_drv;
  *  STATIC VARIABLES
  **********************/
 static SemaphoreHandle_t xGuiSemaphore;
+static const char *TAG = "GUI.c";
 
 /**********************
 *   GLOBAL FUNCTIONS
@@ -42,6 +45,7 @@ void GUI_init(void){
 
     // LVGL Initialization
     lv_init();
+    ESP_LOGI(TAG, "lv initialised");
 
     //Screen Buffer initialization
     static EXT_RAM_ATTR lv_color_t * buf1[DISP_BUF_SIZE];
@@ -73,6 +77,7 @@ void GUI_init(void){
 
     // Init menu graphic user interface
     GUI_frontend();
+    ESP_LOGI(TAG, "GUI_frontend initialised");
 
 }
 

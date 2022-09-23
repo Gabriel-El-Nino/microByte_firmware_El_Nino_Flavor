@@ -23,9 +23,9 @@ extern const uint8_t ttf_end[] asm("_binary_Ubuntu_R_ttf_end");
 #define DRAW_EVENT_FRAME_START 0xfffe
 #define DRAW_EVENT_FRAME_END 0xffff
 #define DRAW_EVENT_CONTROL DRAW_EVENT_START
-#define ST7789_BUFFER_SIZE 20
-#define ST7789_DISPLAY_WIDTH 240
-#define ST7789_DISPLAY_HEIGHT 240
+#define ILI9341_BUFFER_SIZE 20
+#define ILI9341_DISPLAY_WIDTH SCR_WIDTH
+#define ILI9341_DISPLAY_HEIGHT SCR_HEIGHT
 
 /*********************
  *   STATIC VARIABLES
@@ -135,7 +135,7 @@ void boot_screen_task(void *arg){
 
 				if (has_render_layer){
 					randomize_dither_table();
-					for (size_t block = 0; block < ST7789_DISPLAY_WIDTH; block += ST7789_BUFFER_SIZE){
+					for (size_t block = 0; block < ILI9341_DISPLAY_HEIGHT; block += ILI9341_BUFFER_SIZE){
 						current_layer = animation_step->draw_elements;
 						while (current_layer->callback) {
 							draw_state.user_data = current_layer->user_data;
@@ -184,27 +184,27 @@ static void plasma_animation(uint16_t * buffer, uint16_t y, draw_event_param_t *
 
 	if (y >= DRAW_EVENT_CONTROL) {
 		if (y == DRAW_EVENT_START) {
-			ESP_ERROR_CHECK(font_render_init(&font_render2, &font_face, 30, 48));
+			ESP_ERROR_CHECK(font_render_init(&font_render2, &font_face, 50, 48));
 		}
 		else if (y == DRAW_EVENT_END) {
 			font_render_destroy(&font_render2);
 		}
 		else if (y == DRAW_EVENT_FRAME_START) {
-			if (param->frame > 1200 - 240) {
+			if (param->frame > 1200 - ILI9341_DISPLAY_WIDTH) {
 				uint32_t glyph = 0x21 + ((param->frame >> 5) % 0x5d);
 				ESP_ERROR_CHECK(font_render_init(&font_render, &font_face, (fast_sin(param->frame << 2) >> 1) + 14, 1));
 				font_render_glyph(&font_render, glyph);
 			}
 		}
 		else if (y == DRAW_EVENT_FRAME_END) {
-			if (param->frame > 1200 - 240) {
+			if (param->frame > 1200 - ILI9341_DISPLAY_WIDTH) {
 				font_render_destroy(&font_render);
 			}
 		}
 		return;
 	}
 
-	int cursor_x = 240 - 1;
+	int cursor_x = ILI9341_DISPLAY_WIDTH - 1;
 	int cursor_y = y - 1;
 	const int frame = (int)param->frame;
 	const int plasma_shift = frame < 256 ? 1 : 2;
@@ -213,9 +213,9 @@ static void plasma_animation(uint16_t * buffer, uint16_t y, draw_event_param_t *
 	const int frame_2 = frame << 2;
 	const int frame_7 = frame * 7;
 	
-	for (size_t i = 0; i < (20*240); ++i){
+	for (size_t i = 0; i < (20*ILI9341_DISPLAY_WIDTH); ++i){
 		cursor_x++;
-		if(cursor_x == 240){
+		if(cursor_x == ILI9341_DISPLAY_WIDTH){
 			cursor_x = 0;
 			cursor_y++;
 		}
@@ -253,10 +253,10 @@ static void plasma_animation(uint16_t * buffer, uint16_t y, draw_event_param_t *
 	}
 
 	if(frame >= 0 && frame<= 100){
-		render_text("micro", &font_render2, buffer, 50, 100, y, 255, 255, 255);
+		render_text("Retro", &font_render2, buffer, 40, 100, y, 255, 255, 255);
 	}
 	if(frame >= 0 && frame<= 100){
-		render_text("BYTE", &font_render2, buffer, 130, 100, y, 255, 255, 255);
+		render_text("Nino", &font_render2, buffer, 180, 100, y, 255, 255, 255);
 	}
 }
 
@@ -270,7 +270,7 @@ static void randomize_dither_table(){
 
 static void render_text(const char *text, font_render_t *render, uint16_t *buffer, int src_x, int src_y, int y, uint8_t color_r, uint8_t color_g, uint8_t color_b){
 
-	if(src_y - y >= ST7789_BUFFER_SIZE || src_y + (int)render->max_pixel_height - y < 0){
+	if(src_y - y >= ILI9341_BUFFER_SIZE || src_y + (int)render->max_pixel_height - y < 0){
 		return;
 	}
 
@@ -278,7 +278,7 @@ static void render_text(const char *text, font_render_t *render, uint16_t *buffe
 		uint32_t glyph;
 		text += u8_decode(&glyph, text);
 		font_render_glyph(render, glyph);
-		draw_gray2_bitmap(render->bitmap, buffer, color_r, color_g, color_b, src_x + render->bitmap_left, render->max_pixel_height - render->origin - render->bitmap_top + src_y - y, render->bitmap_width, render->bitmap_height, 240, ST7789_BUFFER_SIZE);
+		draw_gray2_bitmap(render->bitmap, buffer, color_r, color_g, color_b, src_x + render->bitmap_left, render->max_pixel_height - render->origin - render->bitmap_top + src_y - y, render->bitmap_width, render->bitmap_height, ILI9341_DISPLAY_WIDTH, ILI9341_BUFFER_SIZE);
 		src_x += render->advance;
 	}
 }
